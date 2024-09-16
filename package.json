@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "This fullStack YouTube Clone",
   "type": "module",
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
-    "dev": "nodemon app.js"
+    "dev": "nodemon index.js"
   },
   "keywords": [
     "YouTube",
