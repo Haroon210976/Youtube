@@ -5,7 +5,6 @@ import { User } from '../models/user.model.js';
 import { Video } from '../models/video.model.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import { Playlist } from '../models/playlist.model.js';
-import { Types } from 'mongoose';
 
 // Create a Playlist
 const createPlaylist = asyncHandler(async (req, res) => {
@@ -249,7 +248,7 @@ const getAllPlaylistsOfVideo = asyncHandler(async (req, res) => {
 // get all playlists ?
 const getAllPlaylists = asyncHandler(async (req, res) => {
   const playlists = await Playlist.find();
-  if (!playlists) {
+  if (!playlists.length) {
     throw new ApiError(404, 'Playlists Not Found');
   }
 

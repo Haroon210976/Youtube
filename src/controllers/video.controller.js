@@ -156,15 +156,16 @@ const updateVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
   const thumbnailLocalPath = req.file?.path;
 
-  if (!title || !description || !thumbnailLocalPath) {
+  if (!title || !description) {
     throw new ApiError(400, 'All Fields Are mandatory');
   }
 
+  if (!thumbnailLocalPath) {
+    throw new ApiError(400, 'Thumbnail is Missing');
+  }
+
   // Upload on Cloudinary
-  const thumbnail = await uploadOnCloudinary(
-    thumbnailLocalPath,
-    req.user.username
-  );
+  const thumbnail = await uploadOnCloudinary(thumbnailLocalPath);
 
   if (!thumbnail?.url) {
     throw new ApiError(
@@ -173,7 +174,15 @@ const updateVideo = asyncHandler(async (req, res) => {
     );
   }
 
-  const video = await Video.findByIdAndUpdate(
+  const video = await Video.findById(videoId);
+  if (!video) {
+    throw new ApiError(404, 'Video not found');
+  }
+  if (video.thumbnail) {
+    await deleteFromCloudinary(video.thumbnail, 'image');
+  }
+
+  const updatedVideo = await Video.findByIdAndUpdate(
     videoId,
     {
       title,
@@ -183,13 +192,13 @@ const updateVideo = asyncHandler(async (req, res) => {
     { new: true }
   );
 
-  if (!video) {
+  if (!updatedVideo) {
     throw new ApiError(400, 'Issues while updating video details');
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, video, 'Video Updated Successfully'));
+    .json(new ApiResponse(200, updatedVideo, 'Video Updated Successfully'));
 });
 
 // Delete Video
