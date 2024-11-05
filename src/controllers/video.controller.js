@@ -42,7 +42,6 @@ const getAllVideos = asyncHandler(async (req, res) => {
     .skip(skip)
     .limit(parseInt(limit))
     .sort(sortOptions)
-    .populate('user', 'username') // Optional: Populate user field with username
     .exec();
 
   // Count total documents for pagination
@@ -50,7 +49,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
   // Send API response with videos and pagination info
   res.status(200).json(
-    new ApiResponse(videos, {
+    new ApiResponse(200, videos, {
       currentPage: parseInt(page),
       totalPages: Math.ceil(totalVideos / limit),
       totalVideos,
@@ -128,7 +127,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 // Get Video By ID
 const getVideoById = asyncHandler(async (req, res) => {
   const { videoId } = req.params;
-  //TODO: get video by idnot
+  //TODO: get video by id
   if (!videoId || !mongoose.Types.ObjectId.isValid(videoId)) {
     throw new ApiError(400, 'Invalid Video ID');
   }
@@ -138,6 +137,29 @@ const getVideoById = asyncHandler(async (req, res) => {
   if (!video) {
     throw new ApiError(404, 'Video not Found');
   }
+
+  // Initialize lastView if it doesn't exist
+  if (!req.session.lastView) {
+    req.session.lastView = {};
+  }
+
+  // Check if the user has already viewed the video today
+  const today = new Date().toISOString().split('T')[0]; // Get today's date
+
+  if (req.session.lastView[videoId] !== today) {
+    // If the user hasn't viewed this video today, increment the view count
+    video.views += 1; // Increment the view count
+    await video.save(); // Save the updated video document
+    req.session.lastView[videoId] = today; // Update the last viewed date for this video
+  }
+
+  await User.findByIdAndUpdate(
+    req.user?._id,
+    {
+      $addToSet: { watchHistory: videoId },
+    },
+    { new: true }
+  );
 
   return res
     .status(200)

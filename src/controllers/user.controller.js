@@ -7,6 +7,7 @@ import {
 } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 // function : generate access and refresh tokens
 const generateAccessAndRefreshTokens = async (userId) => {

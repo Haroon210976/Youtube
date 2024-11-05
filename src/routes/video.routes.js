@@ -1,4 +1,5 @@
 import Router from 'express';
+import session from 'express-session';
 import {
   getAllVideos,
   publishAVideo,
@@ -32,7 +33,15 @@ router
 
 router.route('/delete/:videoId').delete(deleteVideo);
 router.route('/update/:videoId').patch(upload.single('thumbnail'), updateVideo);
-router.route('/:videoId').get(getVideoById);
+router.route('/:videoId').get(
+  session({
+    secret: 'secret-key', // Change this to a secure key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false }, // Set to true if using HTTPS
+  }),
+  getVideoById
+);
 
 router.route('/toggle/publish/:videoId').patch(togglePublishStatus);
 
