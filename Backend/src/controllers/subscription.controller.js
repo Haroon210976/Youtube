@@ -4,6 +4,7 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { Subscription } from '../models/subscription.model.js';
 import { User } from '../models/user.model.js';
+import { log } from '../contants.js';
 
 // How many User Subscribed to the Channel
 const getUserChannelSubscribers = asyncHandler(async (req, res) => {
@@ -21,10 +22,10 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
   }
 
   // Aggregate to count the subscribers
-  const subscribersCount = await Subscription.aggregate([
+  const subscribersData = await Subscription.aggregate([
     {
       $match: {
-        channel: mongoose.Types.ObjectId(channelId),
+        channel: new mongoose.Types.ObjectId(channelId),
       },
     },
     {
@@ -32,14 +33,20 @@ const getUserChannelSubscribers = asyncHandler(async (req, res) => {
     },
   ]);
 
-  // Set default count to 0 if no subscribers found
-  const count = subscribersCount.length
-    ? subscribersCount[0].subscribersCount
-    : 0;
+  const subscribersCount =
+    subscribersData.length > 0 ? subscribersData[0].subscribersCount : 0;
+
+  log('Subscribers Count : ', subscribersCount);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, { count }, 'Subscribers successfully fetched'));
+    .json(
+      new ApiResponse(
+        200,
+        { subscribersCount },
+        'Subscribers successfully fetched'
+      )
+    );
 });
 
 // Get How many Users are subscribed by the Channel
@@ -61,7 +68,7 @@ const getSubscribedChannels = asyncHandler(async (req, res) => {
   const subscribedCount = await Subscription.aggregate([
     {
       $match: {
-        subscriber: mongoose.Types.ObjectId(subscriberId),
+        subscriber: new mongoose.Types.ObjectId(subscriberId),
       },
     },
     {
@@ -104,7 +111,7 @@ const toggleSubscription = asyncHandler(async (req, res) => {
   });
 
   if (existingSubscriber) {
-    await existingSubscriber.remove();
+    await Subscription.findByIdAndDelete(existingSubscriber._id);
     return res
       .status(200)
       .json(new ApiResponse(200, {}, 'Unsubscribed successfully'));

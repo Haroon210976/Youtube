@@ -29,7 +29,7 @@ const toggleVideoLike = asyncHandler(async (req, res) => {
 
   if (likedVideo) {
     // If a like exists, remove it to unlike the video
-    await likedVideo.remove();
+    await Like.findByIdAndDelete(likedVideo._id);
     return res
       .status(200)
       .json(new ApiResponse(200, {}, 'Video successfully unliked'));
@@ -68,7 +68,7 @@ const toggleCommentLike = asyncHandler(async (req, res) => {
 
   if (likedComment) {
     // If a like exists, remove it to unlike the comment
-    await likedComment.remove();
+    await Like.findByIdAndDelete(likedComment._id);
     return res
       .status(200)
       .json(new ApiResponse(200, {}, 'Comment successfully unliked'));
@@ -107,7 +107,7 @@ const toggleTweetLike = asyncHandler(async (req, res) => {
 
   if (likedTweet) {
     // If a like exists, remove it to unlike the tweet
-    await likedTweet.remove();
+    await Like.findByIdAndDelete(likedTweet._id);
     return res
       .status(200)
       .json(new ApiResponse(200, {}, 'Tweet successfully unliked'));

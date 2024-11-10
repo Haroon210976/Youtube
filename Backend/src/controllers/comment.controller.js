@@ -41,6 +41,8 @@ const updateComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Invalid Comment Id');
   }
 
+  const comment = await Comment.findById(commentId);
+
   if (comment.owner.toString() !== req.user?._id.toString()) {
     throw new ApiError(400, 'Not Authorized to update this comment');
   }
@@ -49,11 +51,8 @@ const updateComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Please provide comment content');
   }
 
-  const comment = await Comment.findByIdAndUpdate(
-    commentId,
-    { content },
-    { new: true }
-  );
+  comment.content = content;
+  await comment.save();
 
   if (!comment) {
     throw new ApiError(404, 'Error while updating comment');
@@ -72,11 +71,11 @@ const deleteComment = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Invalid Comment Id');
   }
 
+  const comment = await Comment.findByIdAndDelete(commentId);
+
   if (comment.owner.toString() !== req.user?._id.toString()) {
     throw new ApiError(400, 'Not Authorized to delete this comment');
   }
-
-  const comment = await Comment.findByIdAndDelete(commentId);
 
   if (!comment) {
     throw new ApiError(404, 'Error while deleting comment');
@@ -99,7 +98,7 @@ const getVideoComments = asyncHandler(async (req, res) => {
   const aggregate = await Comment.aggregate([
     {
       $match: {
-        video: new mongoose.Types.ObjectId(videoId),
+        video: videoId,
       },
     },
     {
@@ -111,10 +110,13 @@ const getVideoComments = asyncHandler(async (req, res) => {
       },
     },
     {
+      $unwind: '$ownerDetails',
+    },
+    {
       $project: {
         content: 1,
         createdAt: 1,
-        'ownerDetails.uername': 1,
+        'ownerDetails.username': 1,
         'ownerDetails.avatar': 1,
       },
     },
