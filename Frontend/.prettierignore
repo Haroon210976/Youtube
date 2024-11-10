@@ -1,0 +1,23 @@
+# Ignore artifacts:
+build/
+coverage/
+node_modules/
+dist/
+
+# Ignore all JS and CSS files in public directory
+public/**/*.js
+public/**/*.css
+
+# Ignore minified files
+*.min.js
+
+# Ignore logs
+logs
+*.log
+
+# Ignore package-lock and yarn lock files
+package-lock.json
+yarn.lock
+
+# Ignore environment variables
+.env
